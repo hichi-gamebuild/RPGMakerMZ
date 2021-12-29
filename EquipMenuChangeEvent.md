@@ -1,7 +1,7 @@
 # EquipMenuChangeEvent
 装備変更時に簡易イベントを発生させるプラグイン
 
-[ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/EquipMenuChangeEvent.js)　Ver.1.0.0
+[ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/EquipMenuChangeEvent.js)　Ver.1.0.1
 
 # なにこれ？
 装備変更しようとした時に簡単なイベントを発生させるよ。  
