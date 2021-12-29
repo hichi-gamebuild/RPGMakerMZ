@@ -7,6 +7,7 @@
 // This software is released under the MIT License.
 // ----------------------------------------------------------------------------
 // Version
+// 1.0.1 2021/12/29 英語版マニュアル追加（Passingbyposts様、ありがとうありがとう…）
 // 1.0.0 2021/12/27 初版
 // ----------------------------------------------------------------------------
 // 作者もまだまだ手探り状態で作っているため、
@@ -16,29 +17,180 @@
 
 /*:
  * @target MZ
- * @plugindesc change equip.
+ * @plugindesc A plugin that generates a simple event when changing equipment.
  * @author hichi
  * 
  * @help EquipMenuChangeEvent.js
  *
- * An event will occur if you change the equip.
+ * A simple event will occur when you try to change equipment.
+ * It's a story that ends with fixing the equipment of the default function,
+ * The point is that you can operate it until just before.
+ * Made to create a special feeling of equipment.
+ *
+ * For example, a simple message is sent when attaching or detaching equipment, or changes are refused.
+ * Operation of switches and variables, forced termination of menu screen,
+ * Furthermore, you can also start a common event after the menu is forcibly terminated.
+ * It may be possible to connect to a special event related to equipment.
+ *
+ * By the way, all of these operate from the equipment change screen of the menu
+ * Only when the equipment is changed. (It does not occur when changing equipment at an event)
  * 
- * I'm noooooooob at English power.
- * sorry. sorry. I'm about to cry. :_(
+ * --------------------------------------------------------------------
+ * Please attach a special tag to the memo field of the equipment item.
+ *
+ * Different types of tags can be used in combination,
+ * Note that even if two or more tags of the same type are lined up, only the last set tag will be applied.
+ * Do your best and make a one-line tag.
+ *
+ * Actor ID is specified as 0 and it targets everyone.
+ * Since processing is performed in the set order, if 0 is specified at the end, only the specified character is special.
+ * You can send a message and send a general-purpose message to other characters.
+ *
+ * If each argument has his Plugin Common Base of Triacontane God applied
+ * Control characters such as variable references can be used as they are, maybe. (I'm not so confident)
+ * 
+ * ～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～
+ * ・ About common specifications of each tag
+ *
+ * equipOn ... When new equipment is decided. It is not a candidate for the strongest equipment.
+ * equipOff ... When you decide the part to change. It is not a candidate to remove all.
+ * equipNull ... When the equipment is unequipped. It is not a candidate to remove all.
+ * equipChange ... When the equipment is actually changed.
+ *
+ *: Add after the tag name. From here onwards are the parameters.
+ *, Code for separating parameters.
+ *; This is the code when one target has been specified. Used when specifying multiple targets.
+ * ～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～
+ * 
+ * *** Refusal to attach / detach ***
+ * <equipOnCancel:X1;X2; ...>
+ * <equipOffCancel:X1;X2; ...>
+ * <equipNullCancel:X1;X2; ...>
+ * 
+ * When the specified character tries to put on or take off the equipment with this tag, it will be rejected.
+ * Specify the actor ID for X1 ~.
+ * 
+ * 
+ * *** Simple message ***
+ * <equipOnMessage: X1, message 1st line \ nmessage 2nd line; X2, message ...>
+ * <equipOffMessage: X1, message 1st line \ nmessage 2nd line; X2, message ...>
+ * <equipNullMessage: X1, message 1st line \ nmessage 2nd line; X2, message ...>
+ * 
+ * When the designated character tries to put on or take off the equipment with this tag,
+ * A simple message is displayed regardless of whether the equipment has been changed or rejected.
+ * For X1, specify the actor's ID.
+ * After X1, it will be message data, and line breaks will be \ n.
+ * Since it is simple, control characters such as events cannot be used.
+ * In addition, usually only one page, up to 4 lines, cannot be written on more than 2 pages
+ * 
+ * 
+ * *** Menu forced termination ***
+ * <equipOnMenuEnd:X1,Y1;X2,Y2 ...>
+ * <equipOffMenuEnd:X1,Y1;X2,Y2 ...>
+ * <equipNullMenuEnd:X1,Y1;X2,Y2 ...>
+ * 
+ * When the designated character tries to put on or take off the equipment with this tag,
+ * Kills the currently open menu screen.
+ * If a simple message is also used, it will be processed first and then forcibly terminated.
+ * For X1, specify the actor's ID.
+ * For Y2, you can specify the common event that you want to fire after the menu ends, and you can omit it.
+ * Only equipOffMenuEnd cannot be removed even if Cancel is not specified.
+ * This is because the menu screen is forcibly terminated before going to the removal process, which is a specification.
+ * 
+ * 
+ * *** Sound playback ***
+ * <equipOnPlaySE:X1,Y1;X2,Y2 ...>
+ * <equipOffPlaySE:X1,Y1;X2,Y2 ...>
+ * <equipNullPlaySE:X1,Y1;X2,Y2 ...>
+ * <equipOnPlayME:X1,Y1;X2,Y2 ...>
+ * <equipOffPlayME:X1,Y1;X2,Y2 ...>
+ * <equipNullPlayME:X1,Y1;X2,Y2 ...>
+ * 
+ * When the designated character tries to put on or take off the equipment with this tag,
+ * Sounds a sound file (SE / ME).
+ * If this tag is set, the original sound (kacha, boobu, etc.) will be
+ * If the sounds are played at the same timing, the set sound has priority.
+ * If you bite the message, the timing will be off, so the normal sound will also be played.
+ * For X1, specify the actor's ID.
+ * For Y1, specify the sound file name (no extension required).
+ * 
+ * 
+ * *** Switch operation ***
+ * <equipChangeSwitch:X1,Y1,Z1;X2,Y2,Z2 ...>
+ * 
+ *
+ * When the specified character equips the equipment with this tag, the switch will be changed.
+ * This tag is judged only when the equipment is actually changed.
+ * For X1, specify the actor's ID.
+ * Specify the switch number for Y1.
+ * Z1 can specify what the switch should be, and can be omitted.
+ * There are four types of character strings that can be specified: on off true false.
+ * If omitted (blank), the value will be set according to the equipment status.
+ * 
+ * * *** Variable operation ***
+ * <equipChangeVariable:X1,Y1,Z1;X2,Y2,Z2 ...>
+ * 
+ * When the specified character equips the equipment with this tag, the variable will be changed.
+ * This tag is judged only when the equipment is actually changed.
+ * For X1, specify the actor's ID.
+ * Specify the variable number for Y1.
+ * You can specify what value to put in the variable for Z1 and omit it.
+ * If omitted (blank), it will be +1 if equipped and -1 if removed.
+ * 
+ * 
+ * --------------------------------------------------------------------
+ * ・Example of use
+ * 
+ * <equipNullCancel:0>
+ * <equipNullMessage:0,This equipment cannot be removed.。>
+ * 
+ * It is prohibited to make it unequipped.
+ * Equipment replacement is permitted as it is.
+ * For example, if you enter this tag on all weapons,
+ * All characters can be banned from having no weapons.
+ * 
+ * 
+ * <equipOnMessage: 0, it's gone! \ n This is cursed equipment! >
+ * <equipOnPlaySE: 0, Darkness5>
+ * <equipOffMessage: 0, I can't remove the equipment with a curse! >
+ * <equipOffPlaySE: 0, Paralyze3>
+ * <equipOffCancel: 0>
+ * 
+ * This is an implementation example of cursed equipment such as a certain RPG.
+ * Please dispel the curse at an event.
+ * 
+ * 
+ * <equipOffCancel: 3>
+ * <equipOffMessage: 3, I'm sorry. \ n This is my dad's keepsake ...>
+ * 
+ * When the character with actor ID 3 selects the slot of the equipment with this tag,
+ * Refuses to display the equipment list window and displays a message.
+ * 
+ * 
+ * <equipOnMessage: 2, this sword is really ... \ n Uh, it's a lie ...! !! !! >
+ * <equipChangeSwitch: 2,5, true>
+ * <equipOnMenuEnd: 2,3>
+ * 
+ * When the character with actor ID 2 wears the equipment with this tag
+ * Display a message, turn on game switch 5 to her,
+ * Starts common event 3 after forcibly terminating the menu screen.
+ * It is possible to connect to an event that activates the moment you equip it.
+ * 
+ * --------------------------------------------------------------------
  * 
  * @param windowMenuMessageX
- * @text message window x
- * @desc message window draw point x.
- * window width = screen width size - (x * 2)
+ * @text Window X coordinates
+ * @desc Specify the X coordinate to start drawing the message window.
+ * Screen width-(X value * 2) is the width of the window.
  * @type number
  * @default 20
  * @min 0
  * @max 999
  * 
  * @param windowMenuMessageY
- * @text message window y
- * @desc message window draw point x.
- * window height = event message window size
+ * @text Window Y coordinates
+ * @desc Specify the Y coordinate to start drawing the message window.
+ * The vertical width of the window will be the same as the window of the event.
  * @type number
  * @default 400
  * @min 0
