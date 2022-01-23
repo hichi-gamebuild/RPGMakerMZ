@@ -1,23 +1,23 @@
 # SwitchCompression
-�����ύX���ɊȈՃC�x���g�𔭐�������v���O�C��
+装備変更時に簡易イベントを発生させるプラグイン
 
-[�_�E�����[�h](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/SwitchCompression.js)�@Ver.0.9.1
+[ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/SwitchCompression.js)　Ver.0.9.1
 
-# �Ȃɂ���H
-�X�C�b�`�E�Z���t�X�C�b�`�̃f�[�^�����k���A�Z�[�u�t�@�C���̗e�ʂ��팸�����B
-�A�c�}�[���̃Z�[�u�u���b�N���������ɑ����Ȃ�𗧂Ă邩���H
+# なにこれ？
+スイッチ・セルフスイッチのデータを圧縮し、セーブファイルの容量を削減するよ。  
+アツマールのセーブブロック数問題解決に多少なり役立てるかも？
 
-��ɃZ���t�X�C�b�`���R�g���Ă���قǉ��b���傫���X�������邯�ǁA
-�ǂꂾ�����k�ł��邩�̓Q�[�����ɂ��Ȃ�ˑ����邵�A
-���̏ꍇ�͏Ă��΂ɐ��i50~200�o�C�g���x�j�ŏI������Ⴄ�Ǝv���܂��B
-�Ƃ������A�l�ɂ���Ă͋t�ɑ�����\���܂ł��邩��A�ߓx�Ȋ��҂͂��Ȃ��łˁI
+主にセルフスイッチを沢山使っているほど恩恵が大きい傾向があるけど、  
+どれだけ圧縮できるかはゲーム環境にかなり依存するし、  
+大抵の場合は焼け石に水（50~200バイト程度）で終わっちゃうと思います。  
+というか、人によっては逆に増える可能性まであるから、過度な期待はしないでね！
 
-# ���C�Z���X�Ƃ�
-MIT���C�Z���X�Ȃ̂ŏ��p�Ƃ��֌W�Ȃ������p���������܂��B�i�g���l����񂩂ȁc�H�j
+# ライセンスとか
+MITライセンスなので商用とか関係なくご利用いただけます。（使う人いるんかな…？）
 
-# ��������
-��҂��܂��܂���T���Ԃō���Ă��邽�߁A
-�o�O�񍐂Ȃǂ��������Ă��C���ł��邩�ǂ����ɂ��Ă͕ۏ؂��������˂܂��B
-��������m�̏�A���ȐӔC�ł��g�p����������΂Ǝv���܂��B
+# さいごに
+作者もまだまだ手探り状態で作っているため、  
+バグ報告などいただいても修正できるかどうかについては保証いたしかねます。  
+それを承知の上、自己責任でご使用いただければと思います。
 
-�i�����A������������������I�Ƃ��A���̂����܂������I�Ƃ��A�����������ӌ��͑劽�}�ł��I�j
+（ここ、こうした方がいいよ！とか、このやり方まずいぞ！とか、そういうご意見は大歓迎です！）
