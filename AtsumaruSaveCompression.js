@@ -7,6 +7,7 @@
 // This software is released under the MIT License.
 // ----------------------------------------------------------------------------
 // Version
+// 0.9.0 2022/1/29 β版 セーブデータを汚染しないように設計（元に戻せます）
 // 0.1.0 2022/1/28 α版
 // ----------------------------------------------------------------------------
 // 作者もまだまだ手探り状態で作っているため、
@@ -21,20 +22,50 @@
  * 
  * @help AtsumaruSaveCompression.js
  *
- * アツマール上のセーブ容量を削減するよ。
- * セーブブロック数問題解決に役立てるかも？
+ * アツマール上のセーブデータを圧縮して、使用ブロック数を削減するよ。
+ * 
+ * 今の所、確認しているほぼ全てのケースで使用ブロック数が減少しているので、
+ * みんな苦労している（よね？）、セーブブロック数問題解決に役立てるかも？
  * 
  * 使用方法については、基本的にプラグインを導入するだけでオッケー！
+ * ただし、このプラグインはアツマール上でしか動作しないから、
+ * アツマールにアップする予定がないならゴミ箱へポイしよう！
  * 
- * ちなみにこのプラグインはアツマール上でしか動作しないよ。
- * ローカル環境では従来通りの挙動で動作するので、別に入れっぱなしでもいいけど
- * アツマールに投稿する予定がないなら、ちゃっちゃと捨てた方がいいかもね！
+ * ちなみに内部的な話をすると、本当は圧縮してる訳じゃないよ。
+ * それでも使用ブロック数はちゃんと減るから、気にせず使ってみてね。
+ * （気になる人はソース内の備忘録を見てね）
+ * --------------------------------------------------------------------
+ * 【 セーブの圧縮 】
  * 
- * 今は実験段階のアルファ版なので、基本的にはセーブデータを汚染する形になるよ。
- * 従来式データは読めないし、一度でも保存しちゃうと従来データは全部吹きとぶよ！
- * 取り扱いには気をつけてね！
+ * セーブデータを圧縮する機能。
+ * 設定で true にしておけば勝手に動作するよ。（初期値なのでそのままでOK）
  * 
- * 将来的には従来データを読みつつ保存時は新形式データで保存するようにしたいな～。
+ * false にした場合、保存時は通常のセーブ処理に戻るよ。
+ * ロードは 通常データ・圧縮データ どちらでも読めるから安心してね。
+ * ただ、プラグインごと OFF にしちゃうと、圧縮データは読めなくなるから注意！
+ * 
+ * true / false はプラグインコマンドでゲーム中でも変更できるので、
+ * 実際効果があるか見てみたい人は、イベントに組み込んでみてもいいかも。
+ * --------------------------------------------------------------------
+ * 
+ * @command changeAtsumaruSaveCompression
+ * @text 「セーブの圧縮」の変更
+ * @desc 「セーブの圧縮」機能を使用するかどうか変更できます。
+ * どれだけの差が出るかを見る時などにお使い下さい。
+ *
+ * @arg atsumarusave
+ * @text 圧縮機能の使用
+ * @desc OFF(false) にするとセーブが通常処理に戻ります。
+ * ロードはプラグインが有効な限り、どちらでも読めます。
+ * @default true
+ * @type boolean
+ * 
+ * @param useAtsumaruSaveCompression
+ * @text セーブの圧縮
+ * @desc セーブデータを圧縮します。
+ * アツマール上でのみ有効です。
+ * @type boolean
+ * @default true
  */
 
 //-------------------------------------------------------------------
@@ -63,27 +94,118 @@
     const pluginName = "AtsumaruSaveCompression";
     let enumtop;
 
+    // 圧縮方式のバージョンラベル（何かしらの変更があった時のために）
+    enumtop = 0;
+    const atsumaruSaveCompressionDataVersion = {
+        VERSION_EMPTY: enumtop++,
+        //-------------------------------
+        VERSION_1_0_0: enumtop++,
+
+        //-------------------------------
+        VERSION_LATEST: enumtop-1,
+	};
+
     //-----------------------------------------------------------------------------
-    // StorageManager オーバーライド
+    // プラグインのオプション
+
+    // アツマール上でのみ有効なセーブの圧縮を行うかどうか（falseの場合、通常方式のセーブを行う）
+    let useAtsumaruSaveCompression = PluginManager.parameters(pluginName).useAtsumaruSaveCompression === "true";
+    //-----------------------------------------------------------------------------
+    // プラグインコマンド
+
+    PluginManager.registerCommand(pluginName, 'changeAtsumaruSaveCompression' , args => {
+        // 「セーブの圧縮」の変更
+        const atsumarusave = args.atsumarusave;
+        useAtsumaruSaveCompression = JSON.parse(atsumarusave.toLowerCase());
+    });
+    //-----------------------------------------------------------------------------
+
+    function isAtsumaruMode() {
+        // 現在の動作環境がアツマール上かどうかを判定
+        return window.RPGAtsumaru ? true : false;
+    };
+
+    //-----------------------------------------------------------------------------
+    // DataManager オーバーライド
     //
-    // アツマールでの動作時、JSONの圧縮をしない（サーバー側で勝手に圧縮されるので、多重圧縮は悪手と判断）
+    // アツマール上でのみ動く専用のセーブファイル読み書き処理を追加
     //-----------------------------------------------------------------------------
-    const _StorageManager_saveObject = StorageManager.saveObject;
-    StorageManager.saveObject = function(saveName, object) {
-        if (window.RPGAtsumaru) {
-            return this.objectToJson(object)
-                .then(zip => this.saveZip(saveName, zip));
-        } else {
-            return _StorageManager_saveObject.call(this, saveName, object);
+    const _DataManager_makeSavefileInfo = DataManager.makeSavefileInfo;
+    DataManager.makeSavefileInfo = function() {
+        // globalInfo に、アツマール用のセーブ方式を適用している事を示すラベルを埋め込む処理を追加
+        const info = _DataManager_makeSavefileInfo.call(this);
+        if(isAtsumaruMode()){
+            // 常に最新版のラベルを埋め込む
+            info.atsumaruSave = atsumaruSaveCompressionDataVersion.VERSION_LATEST;
+
+            // オプションで不使用に設定した時はラベルごと削除する
+            if(useAtsumaruSaveCompression === false) delete info.atsumaruSave;
         }
+        return info;
     };
-    const _StorageManager_loadObject = StorageManager.loadObject;
-    StorageManager.loadObject = function(saveName) {
-        if (window.RPGAtsumaru) {
-            return this.loadZip(saveName)
-                .then(json => this.jsonToObject(json));
-        } else {
-            return _StorageManager_loadObject.call(this, saveName);
+
+    const _DataManager_saveGame = DataManager.saveGame;
+    DataManager.saveGame = function(savefileId) {
+        // アツマールでの動作時、JSONの生データを渡す
+        if(isAtsumaruMode() && useAtsumaruSaveCompression){
+            const contents = this.makeSaveContents();
+            const saveName = this.makeSavename(savefileId);
+            return StorageManager.saveObjectAtsumaru(saveName, contents).then(() => {
+                this._globalInfo[savefileId] = this.makeSavefileInfo();
+                this.saveGlobalInfo();
+                return 0;
+            });
         }
+        
+        // ここまで来たら通常処理
+        return _DataManager_saveGame.call(this, savefileId);
     };
+
+    const _DataManager_loadGame = DataManager.loadGame;
+    DataManager.loadGame = function(savefileId) {
+        // アツマールでの動作時、JSONの生データを受け取る
+        const atsumaru_savever = this.getAtsumaruSaveVersion(savefileId);
+        if(isAtsumaruMode() && (atsumaru_savever !== void 0)){
+            // アツマール用のセーブデータである事を確認
+            // 保存方式のバージョンによってロード方法を変える（プラグインのバージョンではない）
+            if(atsumaru_savever === atsumaruSaveCompressionDataVersion.VERSION_1_0_0){
+                // ===================================================================
+                // Ver 1.0.0
+                const saveName = this.makeSavename(savefileId);
+                return StorageManager.loadObjectAtsumaru(saveName).then(contents => {
+                    this.createGameObjects();
+                    this.extractSaveContents(contents);
+                    this.correctDataErrors();
+                    return 0;
+                });
+                // ===================================================================
+            }
+        }
+
+        // ここまで来たら通常処理
+        return _DataManager_loadGame.call(this, savefileId);
+    };
+
+    //-----------------------------------------------------------------------------
+    // DataManager 追加定義
+    //
+    // アツマールでの動作時、セーブデータがアツマール用に保存されたものであるかをチェックする処理を追加
+    //-----------------------------------------------------------------------------
+    DataManager.getAtsumaruSaveVersion = function(savefileId) {
+        // セーブファイルがアツマール用になっているかは globalInfo が覚えている
+        return this._globalInfo[savefileId].atsumaruSave;
+    };
+
+    //-----------------------------------------------------------------------------
+    // StorageManager 追加定義
+    //
+    // アツマールでの動作時、zip圧縮を行わない保存処理を追加
+    //-----------------------------------------------------------------------------
+    StorageManager.saveObjectAtsumaru = function(saveName, object) {
+        return this.objectToJson(object).then(zip => this.saveZip(saveName, zip));
+    };
+    StorageManager.loadObjectAtsumaru = function(saveName) {
+        return this.loadZip(saveName).then(json => this.jsonToObject(json));
+    };
+
 })();
