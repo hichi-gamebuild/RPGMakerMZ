@@ -4,7 +4,6 @@
 [ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/AtsumaruSaveCompression.js)　Ver.0.9.0
 
 __（注意１）β版であり、表には発表もしていない実験中のプラグインとなります。__  
-__（注意２）このプラグインの考え方が正しいかどうか、まだほとんど検証できていません。__
 
 # なにこれ？
 アツマール上のセーブデータを圧縮して、使用ブロック数を削減するよ。
