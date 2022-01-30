@@ -7,8 +7,9 @@
 // This software is released under the MIT License.
 // ----------------------------------------------------------------------------
 // Version
-// 0.9.1 2022/1/23 アツマール上で動かない不具合を修正
-// 0.9.0 2022/1/19 β版
+// 1.0.0 2021/ 1/30 初版
+// 0.9.1 2022/ 1/23 アツマール上で動かない不具合を修正
+// 0.9.0 2022/ 1/19 β版
 // ----------------------------------------------------------------------------
 // 作者もまだまだ手探り状態で作っているため、
 // バグ報告などいただいても修正できるかどうかについては保証いたしかねます。
@@ -23,17 +24,23 @@
  * @help SwitchCompression.js
  *
  * スイッチ・セルフスイッチのデータを圧縮し、セーブファイルの容量を削減するよ。
- * アツマールのセーブブロック数問題解決に多少なり役立てるかも？
- * 
- * 主にセルフスイッチを沢山使っているほど恩恵が大きい傾向があるけど、
- * どれだけ圧縮できるかはゲーム環境にかなり依存するし、
- * 大抵の場合は焼け石に水（50~200バイト程度）で終わっちゃうと思います。
- * というか、人によっては逆に増える可能性まであるから、過度な期待はしないでね！
  * 
  * 使用方法については、基本的にプラグインを導入するだけでオッケー！
  * 設定も特別な理由がない限りデフォルトのままで大丈夫。
  * 
- * 例外としてセルフスイッチの拡張、例えば ABCD 以外の E～ とか、
+ * でも効果は正直微妙で、AtsumaruSaveCompression.js ほどの劇的変化はなく、
+ * 大抵の場合は焼け石に水（50~200バイト程度）で終わっちゃうと思います。
+ * というか、人によっては逆に増える可能性まであるから、過度な期待はしないでね！
+ * 
+ * AtsumaruSaveCompression.js と併用はできるので、効果を増幅させるプラグイン、
+ * という風に思っていただけるといいかなーって思ってます。
+ * 
+ * 主にセルフスイッチを沢山使っているほど恩恵が大きい傾向があります。
+ * どれだけ圧縮できるかはゲーム環境にかなり依存するので、
+ * ある程度ゲームの形が出来てからプラグインコマンドで各機能の ON / OFF を
+ * 切り替えながら最終的に使うかどうかを判断しちゃって下さいませ！
+ * 
+ * 使い方の例外として、セルフスイッチの拡張、例えば ABCD 以外の E～ とか、
  * イベントにセルフ変数とかを追加してセーブするような凝ったゲームシステムだと
  * 正常に動作しない可能性があります。（一応、対応オプション用意しています）
  * 
@@ -53,6 +60,7 @@
  * 実は圧縮効率がそこまで良くない機能なので、
  * 場合によっては使わない方が容量が少ないこともあったり…
  * true / false 両方試してみて、使うかどうかを判断してね。
+ * （プラグインコマンドでゲーム中でも一時的に変更できます）
  * 
  * --------------------------------------------------------------------
  * 【 セルフスイッチの圧縮 】
@@ -67,6 +75,7 @@
  * 
  * 調べてみた限り、セルフスイッチは結構セーブ容量を食う傾向があるみたい。
  * 多用している人はかなりの恩恵があると思うので、是非とも使用してみてね。
+ * （プラグインコマンドでゲーム中でも一時的に変更できます）
  * 
  * --------------------------------------------------------------------
  * 【 不要セルフスイッチの削除 】
@@ -81,6 +90,7 @@
  * 
  * ゲーム全体が綺麗な設計をしている場合、使いどころはぶっちゃけ無いです。
  * セーブ時に負荷がかかるだけなので、必要ないと思ったら false にしてね。
+ * （プラグインコマンドでゲーム中でも一時的に変更できます）
  * 
  * --------------------------------------------------------------------
  * 【 キーネーム 01 ～ 12 】
@@ -94,6 +104,42 @@
  * （ちなみに追加定義分は動作確認してません！ごめん！ごめんて！）
  * 
  * --------------------------------------------------------------------
+ * 
+ * @command changeNormalSwitchCompression
+ * @text 「通常スイッチの圧縮」の変更
+ * @desc 「通常スイッチの圧縮」機能を使用するかどうか変更できます。
+ * どれだけの差が出るかを見る時などにお使い下さい。
+ *
+ * @arg useflag
+ * @text 圧縮機能の使用
+ * @desc OFF(false) にするとセーブが通常処理に戻ります。
+ * ロードはプラグインが有効な限り、どちらでも読めます。
+ * @default true
+ * @type boolean
+ * 
+ * @command changeSelfSwitchCompression
+ * @text 「セルフスイッチの圧縮」の変更
+ * @desc 「セルフスイッチの圧縮」機能を使用するかどうか変更できます。
+ * どれだけの差が出るかを見る時などにお使い下さい。
+ *
+ * @arg useflag
+ * @text 圧縮機能の使用
+ * @desc OFF(false) にするとセーブが通常処理に戻ります。
+ * ロードはプラグインが有効な限り、どちらでも読めます。
+ * @default true
+ * @type boolean
+ * 
+ * @command changeSelfSwitchNothingRemove
+ * @text 「不要セルフスイッチの削除」の変更
+ * @desc 「不要セルフスイッチの削除」機能を使用するかどうか変更できま
+ * す。どれだけの差が出るかを見る時などにお使い下さい。
+ *
+ * @arg useflag
+ * @text 削除機能の使用
+ * @desc OFF(false) にすると不要セルフスイッチの削除が無効となり、
+ * 全てのセルフスイッチを保存するようになります。
+ * @default true
+ * @type boolean
  * 
  * @param normalSwitchCompression
  * @text 通常スイッチの圧縮
@@ -306,10 +352,35 @@
     let normalSwitchesData;
     let selfSwitchesData;
 
+    //-----------------------------------------------------------------------------
     // プラグインのオプション
-    const normalSwitchCompression = PluginManager.parameters(pluginName).normalSwitchCompression === "true";   // 通常スイッチの圧縮
-    const selfSwitchCompression = PluginManager.parameters(pluginName).selfSwitchCompression === "true";       // セルフスイッチの圧縮
-    const selfSwitchNothingRemove = PluginManager.parameters(pluginName).selfSwitchNothingRemove === "true";   // 不要セルフスイッチの削除
+
+    let normalSwitchCompression = PluginManager.parameters(pluginName).normalSwitchCompression === "true";   // 通常スイッチの圧縮
+    let selfSwitchCompression = PluginManager.parameters(pluginName).selfSwitchCompression === "true";       // セルフスイッチの圧縮
+    let selfSwitchNothingRemove = PluginManager.parameters(pluginName).selfSwitchNothingRemove === "true";   // 不要セルフスイッチの削除
+    //-----------------------------------------------------------------------------
+    // プラグインコマンド
+
+    PluginManager.registerCommand(pluginName, 'changeNormalSwitchCompression' , args => {
+        // 「通常スイッチの圧縮」の変更
+        const useflag = args.useflag;
+        normalSwitchCompression = JSON.parse(useflag.toLowerCase());
+    });
+    PluginManager.registerCommand(pluginName, 'changeSelfSwitchCompression' , args => {
+        // 「セルフスイッチの圧縮」の変更
+        const useflag = args.useflag;
+        selfSwitchCompression = JSON.parse(useflag.toLowerCase());
+    });
+    PluginManager.registerCommand(pluginName, 'changeSelfSwitchNothingRemove' , args => {
+        // 「不要セルフスイッチの削除」の変更
+        const useflag = args.useflag;
+        selfSwitchNothingRemove = JSON.parse(useflag.toLowerCase());
+        if(selfSwitchNothingRemove){
+            // 有効なら早速イベントIDリストの更新を試みる
+            recordNewMapEventId();
+        }
+    });
+    //-----------------------------------------------------------------------------
 
     function getSelfKeynameTable() {
         // キーネームテーブルの作成
@@ -368,6 +439,29 @@
             // binstr += String.fromCharCode(bytearray[i]);
         }
         return binstr;
+    };
+
+    function recordNewMapEventId() {
+        // 不要セルフスイッチ削除のために進入したマップ全ての設置イベントIDを記憶しておく
+        if(selfSwitchNothingRemove){
+            // 既に記録されているマップIDか
+            const mapId = $gameMap.mapId();
+            let i;
+            for(i = 0; i < mapEventIdList.length; i++){
+                if(mapEventIdList[i].mapid === mapId){
+                    // 既に記録されているマップIDでした
+                    break;
+                }
+            }
+            if(i >= mapEventIdList.length){
+                // まだ見ていないマップIDだったので記録する
+                $dataMap.events.forEach(eventobj => {
+                    if(eventobj){
+                        mapEventIdList.push({mapid: mapId, evid: eventobj.id});
+                    }
+                });
+            }
+        }
     };
 
     function removeNothingSelfSwitches(selfsw) {
@@ -756,7 +850,7 @@
         else{
             // 使わない場合（不要セルフスイッチ削除機能のみを使う場合）
             if(selfSwitchNothingRemove){
-                newcontents.selfSwitches = removeNothingSelfSwitches(contents.selfSwitches);
+                newcontents.selfSwitches = removeNothingSelfSwitches(contents.selfSwitches.getArray());
             }
         }
 
@@ -785,25 +879,8 @@
     Game_Map.prototype.setup = function(mapId) {
         _Game_Map_setup.call(this, mapId);
 
-        // 不要セルフスイッチ削除のために進入したマップ全ての設置イベントIDを記憶しておく
-        if(selfSwitchNothingRemove){
-            // 既に記録されているマップIDか
-            let i;
-            for(i = 0; i < mapEventIdList.length; i++){
-                if(mapEventIdList[i].mapid === mapId){
-                    // 既に記録されているマップIDでした
-                    break;
-                }
-            }
-            if(i >= mapEventIdList.length){
-                // まだ見ていないマップIDだったので記録する
-                $dataMap.events.forEach(eventobj => {
-                    if(eventobj){
-                        mapEventIdList.push({mapid: mapId, evid: eventobj.id});
-                    }
-                });
-            }
-        }
+        // イベントIDの記録
+        recordNewMapEventId();
     };
 
 })();

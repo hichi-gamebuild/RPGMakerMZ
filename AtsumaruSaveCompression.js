@@ -7,8 +7,9 @@
 // This software is released under the MIT License.
 // ----------------------------------------------------------------------------
 // Version
-// 0.9.0 2022/1/29 β版 セーブデータを汚染しないように設計（元に戻せます）
-// 0.1.0 2022/1/28 α版
+// 1.0.0 2021/ 1/30 初版
+// 0.9.0 2022/ 1/29 β版 セーブデータを汚染しないように設計（元に戻せます）
+// 0.1.0 2022/ 1/28 α版
 // ----------------------------------------------------------------------------
 // 作者もまだまだ手探り状態で作っているため、
 // バグ報告などいただいても修正できるかどうかについては保証いたしかねます。
@@ -16,6 +17,41 @@
 // ----------------------------------------------------------------------------
 
 /*:
+ * @target MZ
+ * @plugindesc Shrink save file on Game Atsumaru Site.
+ * @author hichi
+ * 
+ * @help AtsumaruSaveCompression.js
+ *
+ * Shrink save file on Game Atsumaru Site.
+ * https://game.nicovideo.jp/atsumaru/
+ * 
+ * To use it, just install the plugin.
+ * 
+ * I'm noooooooob at English power.
+ * sorry. sorry. I'm about to cry. :_(
+ * 
+ * @command changeAtsumaruSaveCompression
+ * @text "SaveCompression" Mode change.
+ * @desc "SaveCompression" Mode change.
+ * Used when checking the difference.
+ *
+ * @arg atsumarusave
+ * @text Whether to use "SaveCompression"
+ * @desc OFF(false) >> Normal save mode.
+ * Loading supports all modes as long as the plugin is enabled.
+ * @default true
+ * @type boolean
+ * 
+ * @param useAtsumaruSaveCompression
+ * @text SaveCompression
+ * @desc Shrink save file.
+ * Valid only at Game Atsumaru Site.
+ * @type boolean
+ * @default true
+ */
+
+/*:ja
  * @target MZ
  * @plugindesc アツマール上のセーブ容量を削減するプラグイン。
  * @author ひち
@@ -84,9 +120,8 @@
 // ローカル上でどれだけ最適化しても膨れ上がってしまうのでは？という仮説を立てて
 // あえてセーブ前にzip圧縮をかけず生データを渡す設定に変えてみるとですね。
 // どえらいブロック数削減が起きました。（実験で１０ブロックから５ブロックに）
-// 
-// でもこれって、つまり…　MZのセーブ周りの設計が、そもそもアツマールに
-// 適していなかったって事になる気がするんですよね…　んなアホな…
+//
+// これが「本当は圧縮してる訳じゃないよ」のカラクリです。
 //-------------------------------------------------------------------
 
 (() => {
