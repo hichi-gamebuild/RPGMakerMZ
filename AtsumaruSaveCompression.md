@@ -18,7 +18,7 @@
 （気になる人はソース内の備忘録を見てね）
 
 # 関連プラグイン
-[SwitchCompression](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/SwitchCompression.md)
+[SwitchCompression](https://github.com/hichi-gamebuild/RPGMakerMZ/blob/main/SwitchCompression.md)
 
 スイッチ・セルフスイッチ関連を圧縮するプラグイン。  
 併用する事でより高い圧縮効果を得られる場合があるかもです！
