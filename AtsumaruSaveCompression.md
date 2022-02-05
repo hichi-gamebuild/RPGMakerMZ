@@ -1,10 +1,10 @@
 # AtsumaruSaveCompression
 アツマール上のセーブ容量を削減するプラグイン。
 
-[ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/AtsumaruSaveCompression.js)　Ver.1.0.0
+[ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/AtsumaruSaveCompression.js)　Ver.1.0.1
 
 # なにこれ？
-アツマール上のセーブデータを圧縮して、使用ブロック数を削減するよ。
+アツマール上のセーブデータを削減して、使用ブロック数を削減するよ。
 
 今の所、確認しているほぼ全てのケースで使用ブロック数が減少しているので、  
  みんな苦労している（よね？）、セーブブロック数問題解決に役立てるかも？
@@ -13,9 +13,14 @@
 ただし、このプラグインはアツマール上でしか動作しないから、  
 アツマールにアップする予定がないならゴミ箱へポイしよう！
 
-ちなみに内部的な話をすると、本当は圧縮してる訳じゃないよ。  
-それでも使用ブロック数はちゃんと減るから、気にせず使ってみてね。  
-（気になる人はソース内の備忘録を見てね）
+<details>
+<summary>もうちょっと詳しく</summary>
+ 
+![image1](https://user-images.githubusercontent.com/96704927/152627598-2d0915b8-be61-430d-8cc1-e995abb34201.png)
+![image2](https://user-images.githubusercontent.com/96704927/152627608-00f071f0-3dbd-4ca7-9485-ed380a907639.png)
+![image3](https://user-images.githubusercontent.com/96704927/152627614-7da14502-0a5d-4a3f-8dac-45f320f25411.png)
+![image4](https://user-images.githubusercontent.com/96704927/152627618-7bd4acb6-401a-4bfd-9cfd-04ad40bf7a06.png)
+</details>
 
 # 関連プラグイン
 [SwitchCompression](https://github.com/hichi-gamebuild/RPGMakerMZ/blob/main/SwitchCompression.md)
