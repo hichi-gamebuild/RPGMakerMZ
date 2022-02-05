@@ -7,6 +7,7 @@
 // This software is released under the MIT License.
 // ----------------------------------------------------------------------------
 // Version
+// 1.0.1 2021/ 2/ 5 オプション・システムファイルにも適用できるよう機能追加
 // 1.0.0 2021/ 1/30 初版
 // 0.9.0 2022/ 1/29 β版 セーブデータを汚染しないように設計（元に戻せます）
 // 0.1.0 2022/ 1/28 α版
@@ -43,9 +44,28 @@
  * @default true
  * @type boolean
  * 
+ * @command changeOptionSaveCompression
+ * @text Target options for compression.
+ * @desc Target options for compression.
+ * Used when checking the difference.
+ *
+ * @arg optionsave
+ * @text Target options for compression.
+ * @desc OFF(false) >> Normal save mode.
+ * Loading supports all modes as long as the plugin is enabled.
+ * @default true
+ * @type boolean
+ * 
  * @param useAtsumaruSaveCompression
  * @text SaveCompression
  * @desc Shrink save file.
+ * Valid only at Game Atsumaru Site.
+ * @type boolean
+ * @default true
+ * 
+ * @command useOptionSaveCompression
+ * @text OptionCompression
+ * @desc Shrink option file.
  * Valid only at Game Atsumaru Site.
  * @type boolean
  * @default true
@@ -58,7 +78,7 @@
  * 
  * @help AtsumaruSaveCompression.js
  *
- * アツマール上のセーブデータを圧縮して、使用ブロック数を削減するよ。
+ * アツマール上のセーブデータを削減して、使用ブロック数を削減するよ。
  * 
  * 今の所、確認しているほぼ全てのケースで使用ブロック数が減少しているので、
  * みんな苦労している（よね？）、セーブブロック数問題解決に役立てるかも？
@@ -96,10 +116,29 @@
  * @default true
  * @type boolean
  * 
+ * @command changeOptionSaveCompression
+ * @text 「オプション・システムファイルの圧縮」の変更
+ * @desc 「オプション・システムファイルの圧縮」機能を
+ * 使用するかどうか変更できます。
+ *
+ * @arg optionsave
+ * @text 圧縮機能の使用
+ * @desc OFF(false) にするとセーブが通常処理に戻ります。
+ * ロードはプラグインが有効な限り、どちらでも読めます。
+ * @default true
+ * @type boolean
+ * 
  * @param useAtsumaruSaveCompression
  * @text セーブの圧縮
  * @desc セーブデータを圧縮します。
  * アツマール上でのみ有効です。
+ * @type boolean
+ * @default true
+ * 
+ * @param useOptionSaveCompression
+ * @text ｵﾌﾟｼｮﾝ・ｼｽﾃﾑの圧縮
+ * @desc オプション・システムファイルも圧縮対象とするか。
+ * 「セーブの圧縮」が false の時は無視します。
  * @type boolean
  * @default true
  */
@@ -145,6 +184,9 @@
 
     // アツマール上でのみ有効なセーブの圧縮を行うかどうか（falseの場合、通常方式のセーブを行う）
     let useAtsumaruSaveCompression = PluginManager.parameters(pluginName).useAtsumaruSaveCompression === "true";
+
+    // オプション・システムファイルも圧縮対象とするかどうか（falseの場合、通常方式でセーブを行う）
+    let useOptionSaveCompression = (PluginManager.parameters(pluginName).useOptionSaveCompression === "true");
     //-----------------------------------------------------------------------------
     // プラグインコマンド
 
@@ -153,11 +195,55 @@
         const atsumarusave = args.atsumarusave;
         useAtsumaruSaveCompression = JSON.parse(atsumarusave.toLowerCase());
     });
+
+    PluginManager.registerCommand(pluginName, 'changeOptionSaveCompression' , args => {
+        // 「オプション・システムファイルの圧縮」の変更
+        const optionsave = args.optionsave;
+        useOptionSaveCompression = JSON.parse(optionsave.toLowerCase());
+    });
     //-----------------------------------------------------------------------------
 
     function isAtsumaruMode() {
         // 現在の動作環境がアツマール上かどうかを判定
         return window.RPGAtsumaru ? true : false;
+    };
+
+    //-----------------------------------------------------------------------------
+    // ConfigManager オーバーライド
+    //
+    // アツマール上でのみ動く専用のコンフィグファイル読み書き処理を追加
+    //-----------------------------------------------------------------------------
+    const _ConfigManager_load = ConfigManager.load;
+    ConfigManager.load = function() {
+        // ゲーム起動時のコンフィグデータ読み込み
+
+        // まずはアツマール用の無圧縮形式で読めるか試す
+        const saveName = "config";
+        StorageManager.loadObjectAtsumaru(saveName)
+            .then(config => {
+                // ロード成功
+                this.applyData(config || {});
+                this._isLoaded = true;
+            })
+            .catch(() => {
+                // 読めなかった場合は通常のロード処理に戻す
+                _ConfigManager_load.call(this);
+            });
+    };
+
+    const _ConfigManager_save = ConfigManager.save;
+    ConfigManager.save = function() {
+        // コンフィグデータのセーブ
+
+        // アツマールでの動作時、JSONの生データを渡す
+        if(isAtsumaruMode() && useOptionSaveCompression && useAtsumaruSaveCompression){
+            const saveName = "config";
+            StorageManager.saveObjectAtsumaru(saveName, this.makeData());
+        }
+        else{
+            // 通常処理
+            _ConfigManager_save.call(this);
+        }
     };
 
     //-----------------------------------------------------------------------------
@@ -179,8 +265,45 @@
         return info;
     };
 
+    const _DataManager_loadGlobalInfo = DataManager.loadGlobalInfo;
+    DataManager.loadGlobalInfo = function() {
+        // ゲーム起動時の GlobalInfo 読み込み
+
+        // まずはアツマール用の無圧縮形式で読めるか試す
+        const saveName = "global";
+        StorageManager.loadObjectAtsumaru(saveName)
+            .then(globalInfo => {
+                // ロード成功
+                this._globalInfo = globalInfo;
+                this.removeInvalidGlobalInfo();
+                return 0;
+            })
+            .catch(() => {
+                // 読めなかった場合は通常のロード処理に戻す
+                _DataManager_loadGlobalInfo.call(this);
+            });
+    };
+
+    const _DataManager_saveGlobalInfo = DataManager.saveGlobalInfo;
+    DataManager.saveGlobalInfo = function() {
+        // GlobalInfo のセーブ（いわゆるシステムファイル）
+        const contents = this._globalInfo;
+        const saveName = "global";
+
+        // アツマールでの動作時、JSONの生データを渡す
+        if(isAtsumaruMode() && useOptionSaveCompression && useAtsumaruSaveCompression){
+            StorageManager.saveObjectAtsumaru(saveName, contents);
+        }
+        else{
+            // 通常処理
+            _DataManager_saveGlobalInfo.call(this, saveName, contents);
+        }
+    };
+
     const _DataManager_saveGame = DataManager.saveGame;
     DataManager.saveGame = function(savefileId) {
+        // セーブスロットのセーブ
+
         // アツマールでの動作時、JSONの生データを渡す
         if(isAtsumaruMode() && useAtsumaruSaveCompression){
             const contents = this.makeSaveContents();
