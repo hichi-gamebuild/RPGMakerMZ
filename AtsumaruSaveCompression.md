@@ -1,9 +1,16 @@
 # AtsumaruSaveCompression
-アツマール上のセーブ容量を削減するプラグイン。
+~~アツマール上のセーブ容量を削減するプラグイン。~~  
 
-[ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/AtsumaruSaveCompression.js)　Ver.1.0.1
+~~[ダウンロード](https://raw.githubusercontent.com/hichi-gamebuild/RPGMakerMZ/main/AtsumaruSaveCompression.js)　Ver.1.0.1~~
+
+<details>
+<summary>まさかの公式対応していただけたので、このプラグインは必要なくなりました！</summary>
+
+![atsumaru](https://user-images.githubusercontent.com/96704927/153400499-dafa4a42-43dc-4071-99c7-4f785c75d073.png)
+</details>
 
 # なにこれ？
+
 アツマール上のセーブデータを削減して、使用ブロック数を削減するよ。
 
 今の所、確認しているほぼ全てのケースで使用ブロック数が減少しているので、  
